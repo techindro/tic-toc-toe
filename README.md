@@ -44,5 +44,5 @@ Game Development: Use this code as a starting point for your own game developmen
 #GitHub Repository
 
 Repository Name: tic-tac-toe-game
-Repository URL: https://github.com/techindro/tic-tac-toe-game
+Repository URL: https://github.com/techindro/tic-tac-toe.io
 
