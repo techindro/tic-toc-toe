@@ -1,6 +1,7 @@
 #License
 
 MIT License: This code is licensed under the MIT License, which means you are free to use, modify, and distribute it as you see fit.
+
 #Author
 
 Name: [ShubhamPatel]
@@ -8,6 +9,7 @@ Email: [shubhamkumarpatel45@gmail.com]
 GitHub: [techindro]
 
 #Acknowledgments
+
 Thanks to: [List any resources or people you'd like to thank for helping with the project]
 
 #Contributing
