@@ -1,97 +1,161 @@
-const TicTac = {
-    cPlayer: "X", // Tracks current player (X or O)
-    state: Array(9).fill(null), // Board state (null for empty cells)
-    gameOver: false, // Indicates if the game is over
+let currentPlayer = 'X';
+let gameBoard = ['', '', '', '', '', '', '', '', ''];
+let isGameOver = false;
+let player1Name = '';
+let player2Name = '';
+let theme = 'day';
 
-    // Initialize the game
-    init() {
-        this.cBoard();
-        document
-            .getElementById("reset")
-            .addEventListener("click", () => this.reset());
-        document.getElementById("board").addEventListener("click", (e) => this.handleClick(e)); // Handle clicks on the board
-    },
 
-    // Create the game board dynamically
-    cBoard() {
-        const board = document.getElementById("board");
-        board.innerHTML = ""; // Clear previous board
-        this.state.forEach((_, i) => {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.dataset.index = i;
-            board.appendChild(cell);
-        });
-        this.uMessage(`${this.cPlayer}'s turn`); // Use backticks for string interpolation
-    },
+document.getElementById('start-game').addEventListener('click', () => {
+    player1Name = document.getElementById('player1-name').value.trim(); 
+    player2Name = document.getElementById('player2-name').value.trim(); 
 
-    // Handle a cell click
-    handleClick(e) {
-        const cell = e.target;
-        const i = cell.dataset.index;
 
-        // Ignore clicks if game is over or cell is taken
-        if (this.gameOver || !cell.classList.contains("cell") || this.state[i])
-            return;
+    document.getElementById('player1-error').textContent = '';
+    document.getElementById('player2-error').textContent = '';
 
-        // Update board state and UI
-        this.state[i] = this.cPlayer;
-        cell.textContent = this.cPlayer;
-        cell.classList.add("taken");
 
-        // Check for winner or tie
-        const winCombo = this.checkWin();
-        if (winCombo) {
-            this.highlight(winCombo);
-            this.uMessage(`${this.cPlayer} wins!`); // Use backticks for string interpolation
-            this.gameOver = true;
-        } else if (this.state.every((cell) => cell)) {
-            this.uMessage("It's a tie!");
-            this.gameOver = true;
-        } else {
-            // Switch players
-            this.cPlayer = this.cPlayer === "X" ? "O" : "X";
-            this.uMessage(`${this.cPlayer}'s turn`); // Use backticks for string interpolation
+    let isValid = true;
+
+    if (!player1Name) {
+        document.getElementById('player1-error').textContent = 'Entering name is required.';
+        isValid = false; 
+    }
+
+    if (!player2Name) {
+        document.getElementById('player2-error').textContent = 'Entering name is required.'; 
+        isValid = false; 
+    }
+
+    if (!isValid) {
+        return; 
+    }
+    console.log('Starting game...'); 
+    document.querySelector('.landing-page').style.display = 'none';
+    document.querySelector('.game-page').style.display = 'block';
+    document.getElementById('player1-display').textContent = `${player1Name} (X)`;
+    document.getElementById('player2-display').textContent = `${player2Name} (O)`;
+    updateTheme();
+    resetGame();
+});
+
+document.querySelectorAll('.cell').forEach(cell => {
+    cell.addEventListener('click', function () {
+        if (gameBoard[this.dataset.index] || isGameOver) return;
+        gameBoard[this.dataset.index] = currentPlayer;
+        this.textContent = currentPlayer;
+
+        if (checkWinner()) {
+            isGameOver = true;
+            document.getElementById('winner-announcement').textContent = `${currentPlayer === 'X' ? player1Name : player2Name} Wins!`;
+            document.getElementById('winner-announcement').classList.add('visible'); 
+            document.getElementById('restart-btn').style.display = 'block'; 
+            highlightWinningCells();
+        } else if (checkForDraw()) {
+            isGameOver = true;
+            document.getElementById('winner-announcement').textContent = 'It\'s a Draw!';
+            document.getElementById('winner-announcement').classList.add('visible'); 
+            document.getElementById('restart-btn').style.display = 'block'; 
         }
-    },
 
-    // Check if there's a winning combination
-    checkWin() {
-        const wins = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8], // Rows
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8], // Columns
-            [0, 4, 8],
-            [2, 4, 6], // Diagonals
-        ];
-        return wins.find((combo) =>
-            combo.every((i) => this.state[i] === this.cPlayer)
-        );
-    },
+        else {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        }
+    });
+});
+function checkWinner() {
+    const winningCombination = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
 
-    // Highlight winning cells
-    highlight(combo) {
-        combo.forEach((i) => {
-            document.getElementById("board").children[i].style.color = "red";
-        });
-    },
+    const winner = winningCombination.find(combination => {
+        return gameBoard[combination[0]] && 
+               gameBoard[combination[0]] === gameBoard[combination[1]] && 
+               gameBoard[combination[0]] === gameBoard[combination[2]];
+    });
 
-    // Reset the game
-    reset() {
-        this.state = Array(9).fill(null);
-        this.cPlayer = "X";
-        this.gameOver = false;
-        this.cBoard();
-    },
+    return winner ? true : false;
+}
 
-    // Update the game status message
-    uMessage(msg) {
-        document.getElementById("message").textContent = msg;
-    },
-};
+function checkForDraw() {
+    return gameBoard.every(cell => cell !== '');
+}
 
-// Start the game
-TicTac.init();
+function highlightWinningCells() {
+    const winningCombination = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+
+    winningCombination.forEach(combination => {
+        if (gameBoard[combination[0]] && gameBoard[combination[0]] === gameBoard[combination[1]] && gameBoard[combination[0]] === gameBoard[combination[2]]) {
+            combination.forEach(index => {
+                document.querySelector(`.cell[data-index="${index}"]`).classList.add('winner');
+            });
+        }
+    });
+}
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+    console.log('Restarting game...'); 
+    resetGame();
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('winner'); 
+    });
+    document.getElementById('winner-announcement').textContent = ''; 
+    document.getElementById('winner-announcement').classList.remove('visible'); 
+    document.getElementById('restart-btn').style.display = 'none';
+
+
+    document.querySelector('.landing-page').style.display = 'block';
+    document.querySelector('.game-page').style.display = 'none';
+
+    document.getElementById('player1-name').value = '';
+    document.getElementById('player2-name').value = '';
+    document.getElementById('player1-error').textContent = '';
+    document.getElementById('player2-error').textContent = '';
+});
+
+
+function resetGame() {
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    isGameOver = false;
+    currentPlayer = 'X';
+}
+
+document.getElementById('theme-btn').addEventListener('click', () => {
+    if (isGameOver) return; 
+    theme = theme === 'day' ? 'night' : 'day';
+    updateTheme();
+});
+
+function updateTheme() {
+    document.body.className = theme === 'day' ? 'day-theme' : 'night-theme';
+    document.getElementById('theme-icon').textContent = theme === 'day' ? '☀️' : '🌙';
+}
+
+for (let i = 0; i < 20; i++) { 
+    const circle = document.createElement('div');
+    circle.className = 'circle';
+    circle.style.width = `${Math.random() * 50 + 20}px`; 
+    circle.style.height = circle.style.width; 
+    circle.style.top = `${Math.random() * 100}vh`;
+    circle.style.left = `${Math.random() * 100}vw`; 
+    circle.style.animationDelay = `${Math.random() * 5}s`;
+    circle.style.transform = `translateZ(${Math.random() * 100}px)`;
+    document.querySelector('.background-animation').appendChild(circle);
+}
