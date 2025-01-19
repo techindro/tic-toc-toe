@@ -1,161 +1,74 @@
-let currentPlayer = 'X';
-let gameBoard = ['', '', '', '', '', '', '', '', ''];
-let isGameOver = false;
-let player1Name = '';
-let player2Name = '';
-let theme = 'day';
+const board = document.getElementById('board')
+const squares = document.getElementsByClassName('square')
+const players = ['X', 'O']
+let currentPlayer = players[0]
+const endMessage = document.createElement('h2')
+endMessage.textContent = `X's turn!`
+endMessage.style.marginTop = '30px'
+endMessage.style.textAlign='center'
+board.after(endMessage)
+var someoneWon = false;
+const winning_combinations = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+]
 
-
-document.getElementById('start-game').addEventListener('click', () => {
-    player1Name = document.getElementById('player1-name').value.trim(); 
-    player2Name = document.getElementById('player2-name').value.trim(); 
-
-
-    document.getElementById('player1-error').textContent = '';
-    document.getElementById('player2-error').textContent = '';
-
-
-    let isValid = true;
-
-    if (!player1Name) {
-        document.getElementById('player1-error').textContent = 'Entering name is required.';
-        isValid = false; 
-    }
-
-    if (!player2Name) {
-        document.getElementById('player2-error').textContent = 'Entering name is required.'; 
-        isValid = false; 
-    }
-
-    if (!isValid) {
-        return; 
-    }
-    console.log('Starting game...'); 
-    document.querySelector('.landing-page').style.display = 'none';
-    document.querySelector('.game-page').style.display = 'block';
-    document.getElementById('player1-display').textContent = `${player1Name} (X)`;
-    document.getElementById('player2-display').textContent = `${player2Name} (O)`;
-    updateTheme();
-    resetGame();
-});
-
-document.querySelectorAll('.cell').forEach(cell => {
-    cell.addEventListener('click', function () {
-        if (gameBoard[this.dataset.index] || isGameOver) return;
-        gameBoard[this.dataset.index] = currentPlayer;
-        this.textContent = currentPlayer;
-
-        if (checkWinner()) {
-            isGameOver = true;
-            document.getElementById('winner-announcement').textContent = `${currentPlayer === 'X' ? player1Name : player2Name} Wins!`;
-            document.getElementById('winner-announcement').classList.add('visible'); 
-            document.getElementById('restart-btn').style.display = 'block'; 
-            highlightWinningCells();
-        } else if (checkForDraw()) {
-            isGameOver = true;
-            document.getElementById('winner-announcement').textContent = 'It\'s a Draw!';
-            document.getElementById('winner-announcement').classList.add('visible'); 
-            document.getElementById('restart-btn').style.display = 'block'; 
+for(let i = 0; i < squares.length; i++){
+    squares[i].addEventListener('click', () => {
+        if(someoneWon) return;
+        if(squares[i].textContent !== ''){
+            return
         }
-
-        else {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        squares[i].textContent = currentPlayer
+        if(checkWin(currentPlayer)) {
+            someoneWon = true;
+            endMessage.textContent=`Game over! ${currentPlayer} wins!`
+            return
         }
-    });
-});
-function checkWinner() {
-    const winningCombination = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
-
-    const winner = winningCombination.find(combination => {
-        return gameBoard[combination[0]] && 
-               gameBoard[combination[0]] === gameBoard[combination[1]] && 
-               gameBoard[combination[0]] === gameBoard[combination[2]];
-    });
-
-    return winner ? true : false;
-}
-
-function checkForDraw() {
-    return gameBoard.every(cell => cell !== '');
-}
-
-function highlightWinningCells() {
-    const winningCombination = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
-
-    winningCombination.forEach(combination => {
-        if (gameBoard[combination[0]] && gameBoard[combination[0]] === gameBoard[combination[1]] && gameBoard[combination[0]] === gameBoard[combination[2]]) {
-            combination.forEach(index => {
-                document.querySelector(`.cell[data-index="${index}"]`).classList.add('winner');
-            });
+        if(checkTie()) {
+            someoneWon = true;
+            endMessage.textContent= `Game is tied!`
+            return
         }
-    });
+        currentPlayer = (currentPlayer === players[0]) ? players[1] : players[0] 
+        if(currentPlayer == players[0]) {
+            endMessage.textContent= `X's turn!`
+        } else {
+            endMessage.textContent= `O's turn!`
+        }     
+    })   
 }
 
-document.getElementById('restart-btn').addEventListener('click', () => {
-    console.log('Restarting game...'); 
-    resetGame();
-    document.querySelectorAll('.cell').forEach(cell => {
-        cell.textContent = '';
-        cell.classList.remove('winner'); 
-    });
-    document.getElementById('winner-announcement').textContent = ''; 
-    document.getElementById('winner-announcement').classList.remove('visible'); 
-    document.getElementById('restart-btn').style.display = 'none';
-
-
-    document.querySelector('.landing-page').style.display = 'block';
-    document.querySelector('.game-page').style.display = 'none';
-
-    document.getElementById('player1-name').value = '';
-    document.getElementById('player2-name').value = '';
-    document.getElementById('player1-error').textContent = '';
-    document.getElementById('player2-error').textContent = '';
-});
-
-
-function resetGame() {
-    gameBoard = ['', '', '', '', '', '', '', '', ''];
-    isGameOver = false;
-    currentPlayer = 'X';
+function checkWin(currentPlayer) {
+    for(let i = 0; i < winning_combinations.length; i++){
+        const [a, b, c] = winning_combinations[i]
+        if(squares[a].textContent === currentPlayer && squares[b].textContent === currentPlayer && squares[c].textContent === currentPlayer){
+            return true
+        }
+    }
+    return false
 }
 
-document.getElementById('theme-btn').addEventListener('click', () => {
-    if (isGameOver) return; 
-    theme = theme === 'day' ? 'night' : 'day';
-    updateTheme();
-});
-
-function updateTheme() {
-    document.body.className = theme === 'day' ? 'day-theme' : 'night-theme';
-    document.getElementById('theme-icon').textContent = theme === 'day' ? '☀️' : '🌙';
+function checkTie(){
+    for(let i = 0; i < squares.length; i++) {
+        if(squares[i].textContent === '') {
+            return false;
+        }
+    }
+    return true
 }
 
-for (let i = 0; i < 20; i++) { 
-    const circle = document.createElement('div');
-    circle.className = 'circle';
-    circle.style.width = `${Math.random() * 50 + 20}px`; 
-    circle.style.height = circle.style.width; 
-    circle.style.top = `${Math.random() * 100}vh`;
-    circle.style.left = `${Math.random() * 100}vw`; 
-    circle.style.animationDelay = `${Math.random() * 5}s`;
-    circle.style.transform = `translateZ(${Math.random() * 100}px)`;
-    document.querySelector('.background-animation').appendChild(circle);
+function restartButton() {
+    someoneWon = false;
+    for(let i = 0; i < squares.length; i++) {
+        squares[i].textContent = ""
+    }
+    endMessage.textContent=`X's turn!`
+    currentPlayer = players[0]
 }
